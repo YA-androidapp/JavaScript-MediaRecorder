@@ -1,14 +1,10 @@
 window.addEventListener("DOMContentLoaded", (event) => {
-    console.log("DOM fully loaded and parsed");
-
     var analyser = null;
     var audioCtx = null;
     var biquadFilter = null;
     var convolver = null;
     var distortion = null;
-    var drawVisual = null;
     var gainNode = null;
-    var isRecording = false;
     var localStream = null;
     var mediaRecorder = null;
     var recordedChunks = [];
@@ -19,6 +15,8 @@ window.addEventListener("DOMContentLoaded", (event) => {
     var canvas = document.querySelector('.visualizer');
     var canvasCtx = canvas.getContext("2d");
     canvas.setAttribute('width', intendedWidth);
+    canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
 
     function visualize() {
@@ -27,13 +25,12 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
         analyser.fftSize = 256;
         var bufferLength = analyser.frequencyBinCount;
-        console.log(bufferLength);
         var dataArray = new Float32Array(bufferLength);
 
         canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
 
         function draw() {
-            drawVisual = requestAnimationFrame(draw);
+            requestAnimationFrame(draw);
 
             analyser.getFloatFrequencyData(dataArray);
 
@@ -70,8 +67,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
 
     function startRecording() {
         if (navigator.mediaDevices) {
-            console.log("mediaDevices supported");
-
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(function (stream) {
                     localStream = stream;
@@ -97,14 +92,17 @@ window.addEventListener("DOMContentLoaded", (event) => {
                     }
 
                     if (mediaRecorder == null) {
-                        console.log("mediaRecorder", null);
+                        var mimeTypeValue = "audio/" + document.getElementById("mimetype").value;
+                        if (MediaRecorder.isTypeSupported(mimeTypeValue) == false) {
+                            mimeTypeValue = "audio/webm";
+                            document.getElementById("mimetype").value = "webm";
+                            document.getElementById("mimetype-alert").style.display = "block";
+                        }
                         mediaRecorder = new MediaRecorder(stream, {
-                            mimeType: "audio/webm" // "audio/ogg"
+                            mimeType: mimeTypeValue
                         });
                         mediaRecorder.start();
                     } else {
-                        console.log("mediaRecorder.state", mediaRecorder.state);
-
                         if (mediaRecorder.state == "paused") {
                             mediaRecorder.resume();
                         } else if (mediaRecorder.state == "inactive") {
@@ -141,7 +139,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
         if (mediaRecorder) {
             if (mediaRecorder.state == "paused" || mediaRecorder.state == "recording") {
                 mediaRecorder.stop();
-                console.log("mediaRecorder.state", mediaRecorder.state);
                 mediaRecorder.ondataavailable = function (e) {
                     if (e.data.size > 0) {
                         recordedMimeType = e.data.type;
@@ -151,8 +148,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
                         document.getElementById("player").style["pointer-events"] = "auto";
                         document.getElementById("record").innerHTML = "<i class=\"bi-record-circle\"></i>";
                         document.getElementById("save").removeAttribute("disabled");
-
-                        // window.cancelAnimationFrame(drawVisual);
 
                         const blob = new Blob(recordedChunks, { type: recordedMimeType });
                         let reader = new FileReader();
@@ -165,11 +160,6 @@ window.addEventListener("DOMContentLoaded", (event) => {
                 }
             }
         }
-        // if (localStream) {
-        //     localStream.getTracks().forEach(track => track.stop());
-        //     localStream = null;
-        //     audioCtx = null;
-        // }
     }
 
     function saveFile() {
@@ -187,26 +177,23 @@ window.addEventListener("DOMContentLoaded", (event) => {
     }
 
     document.getElementById("record").addEventListener("click", function () {
-        console.log("record/pause");
-
-        if (isRecording) {
+        if (mediaRecorder && mediaRecorder.state == "recording") {
             pauseRecording();
-            isRecording = false;
         } else {
             startRecording();
-            isRecording = true;
         }
     });
 
     document.getElementById("stop").addEventListener("click", function () {
-        console.log("stop");
-
         stopRecording();
     });
 
     document.getElementById("save").addEventListener("click", function () {
-        console.log("save");
-
         saveFile();
     });
+
+    var alertList = document.querySelectorAll('.alert')
+    alertList.forEach(function (alert) {
+        new bootstrap.Alert(alert)
+    })
 });

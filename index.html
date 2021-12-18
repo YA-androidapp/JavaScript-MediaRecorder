@@ -16,8 +16,13 @@
 
 <body>
     <div class="container-fluid">
+        <div id="mimetype-alert" class="alert alert-danger alert-dismissible fade show" role="alert"
+            style="display: none;">
+            Selected MIME Type is not supported.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
         <div class="row mt-5">
-            <div class="col-4 offset-4">
+            <div class="col-6 offset-3">
                 <div class="card">
                     <div class="card-header">
                         Recorder
@@ -25,20 +30,13 @@
                     <div class="card-body">
                         <div class="container">
                             <div class="row">
-                                <div class="col-8 offset-2">
-                                    <select class="form-select" aria-label="Audio format">
-                                        <option value="audio/webm" selected>WebM</option>
-                                        <option value="audio/ogg">Ogg</option>
+                                <div class="col-4 offset-2">
+                                    <select id="mimetype" class="form-select" aria-label="Audio format">
+                                        <option value="webm" selected>WebM</option>
+                                        <option value="ogg">Ogg</option>
                                     </select>
                                 </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-8 offset-2">
-                                    &nbsp;
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-8 offset-2">
+                                <div class="col-4">
                                     <button type="button" id="record" class="btn btn-danger" aria-label="Record">
                                         <i class="bi-record-circle"></i>
                                     </button>
